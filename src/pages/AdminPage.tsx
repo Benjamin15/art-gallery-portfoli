@@ -41,17 +41,21 @@ export function AdminPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isUploadFormOpen, setIsUploadFormOpen] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
+  const [isCheckingOwnership, setIsCheckingOwnership] = useState(true)
   const [showTrash, setShowTrash] = useState(false)
 
   // Check if current user is the owner
   useEffect(() => {
     const checkOwnership = async () => {
       try {
+        setIsCheckingOwnership(true)
         const user = await spark.user()
         setIsOwner(user.isOwner)
       } catch (error) {
         console.error('Error checking user ownership:', error)
         setIsOwner(false)
+      } finally {
+        setIsCheckingOwnership(false)
       }
     }
     checkOwnership()
@@ -160,6 +164,18 @@ export function AdminPage() {
     
     setCurrentImageIndex(newIndex)
     setSelectedArtwork(categoryArtworks[newIndex])
+  }
+
+  // Show loading state while checking ownership
+  if (isCheckingOwnership) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Vérification des autorisations...</p>
+        </div>
+      </div>
+    )
   }
 
   // If not owner, show access denied
