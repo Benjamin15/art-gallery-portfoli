@@ -15,10 +15,11 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog'
-import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, Plus, UserGear, Trash } from '@phosphor-icons/react'
+import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, Plus, UserGear, Trash, ArrowCounterClockwise, Archive } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import { AdminUploadForm } from '@/components/AdminUploadForm'
 import { StoredImage } from '@/components/StoredImage'
+import { TrashView } from '@/components/TrashView'
 
 interface Artwork {
   id: string
@@ -29,6 +30,8 @@ interface Artwork {
   year?: string
   medium?: string
   dimensions?: string
+  isDeleted?: boolean
+  deletedAt?: string
 }
 
 function App() {
@@ -37,6 +40,7 @@ function App() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isUploadFormOpen, setIsUploadFormOpen] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
+  const [showTrash, setShowTrash] = useState(false)
 
   // Check if current user is the owner
   useEffect(() => {
@@ -70,8 +74,15 @@ function App() {
     }
   }
 
-  const getArtworksByCategory = (category: string) => {
-    return artworks.filter(artwork => artwork.category === category)
+  const getArtworksByCategory = (category: string, includeDeleted = false) => {
+    return artworks.filter(artwork => 
+      artwork.category === category && 
+      (includeDeleted ? artwork.isDeleted === true : !artwork.isDeleted)
+    )
+  }
+
+  const getDeletedArtworks = () => {
+    return artworks.filter(artwork => artwork.isDeleted === true)
   }
 
   const handleArtworkClick = (artwork: Artwork) => {
@@ -88,9 +99,13 @@ function App() {
 
   const handleDeleteArtwork = async (artworkId: string) => {
     try {
-      // Remove artwork from array using functional update
+      // Move artwork to trash instead of permanent deletion
       setArtworks(currentArtworks => 
-        currentArtworks.filter(artwork => artwork.id !== artworkId)
+        currentArtworks.map(artwork => 
+          artwork.id === artworkId 
+            ? { ...artwork, isDeleted: true, deletedAt: new Date().toISOString() }
+            : artwork
+        )
       )
       
       // Close the detail dialog if the deleted artwork was selected
@@ -101,7 +116,39 @@ function App() {
       // Force page refresh to ensure UI is updated
       window.location.reload()
     } catch (error) {
-      console.error('Error deleting artwork:', error)
+      console.error('Error moving artwork to trash:', error)
+    }
+  }
+
+  const handleRestoreArtwork = async (artworkId: string) => {
+    try {
+      // Restore artwork from trash
+      setArtworks(currentArtworks => 
+        currentArtworks.map(artwork => 
+          artwork.id === artworkId 
+            ? { ...artwork, isDeleted: false, deletedAt: undefined }
+            : artwork
+        )
+      )
+      
+      // Force page refresh to ensure UI is updated
+      window.location.reload()
+    } catch (error) {
+      console.error('Error restoring artwork:', error)
+    }
+  }
+
+  const handlePermanentDeleteArtwork = async (artworkId: string) => {
+    try {
+      // Permanently remove artwork from array
+      setArtworks(currentArtworks => 
+        currentArtworks.filter(artwork => artwork.id !== artworkId)
+      )
+      
+      // Force page refresh to ensure UI is updated
+      window.location.reload()
+    } catch (error) {
+      console.error('Error permanently deleting artwork:', error)
     }
   }
 
@@ -153,10 +200,10 @@ function App() {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Supprimer cette œuvre</AlertDialogTitle>
+                  <AlertDialogTitle>Déplacer vers la corbeille</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Êtes-vous sûr de vouloir supprimer "{artwork.title}" ? 
-                    Cette action est irréversible.
+                    Êtes-vous sûr de vouloir déplacer "{artwork.title}" vers la corbeille ? 
+                    Vous pourrez la restaurer depuis la corbeille.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -165,7 +212,7 @@ function App() {
                     onClick={() => handleDeleteArtwork(artwork.id)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Supprimer
+                    Déplacer vers la corbeille
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -210,30 +257,52 @@ function App() {
               </p>
             </div>
             
-            {/* Admin Button */}
+            {/* Admin Buttons */}
             {isOwner && (
-              <div className="hidden sm:block">
+              <div className="hidden sm:flex items-center gap-3">
                 <Button
-                  onClick={() => setIsUploadFormOpen(true)}
+                  variant={showTrash ? "default" : "outline"}
+                  onClick={() => setShowTrash(!showTrash)}
                   className="flex items-center gap-2"
                 >
-                  <Plus size={18} />
-                  Ajouter une œuvre
+                  <Archive size={18} />
+                  {showTrash ? 'Galerie' : `Corbeille (${getDeletedArtworks().length})`}
                 </Button>
+                
+                {!showTrash && (
+                  <Button
+                    onClick={() => setIsUploadFormOpen(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus size={18} />
+                    Ajouter une œuvre
+                  </Button>
+                )}
               </div>
             )}
           </div>
           
-          {/* Mobile Admin Button */}
+          {/* Mobile Admin Buttons */}
           {isOwner && (
-            <div className="sm:hidden mt-4 text-center">
+            <div className="sm:hidden mt-4 text-center space-y-3">
               <Button
-                onClick={() => setIsUploadFormOpen(true)}
+                variant={showTrash ? "default" : "outline"}
+                onClick={() => setShowTrash(!showTrash)}
                 className="flex items-center gap-2 mx-auto"
               >
-                <Plus size={18} />
-                Ajouter une œuvre
+                <Archive size={18} />
+                {showTrash ? 'Galerie' : `Corbeille (${getDeletedArtworks().length})`}
               </Button>
+              
+              {!showTrash && (
+                <Button
+                  onClick={() => setIsUploadFormOpen(true)}
+                  className="flex items-center gap-2 mx-auto"
+                >
+                  <Plus size={18} />
+                  Ajouter une œuvre
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -241,48 +310,56 @@ function App() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-12">
-        <Tabs defaultValue="sculptures" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto mb-12">
-            {Object.entries(categories).map(([key, category]) => {
-              const Icon = category.icon
-              return (
-                <TabsTrigger key={key} value={key} className="flex items-center gap-2">
-                  <Icon size={18} />
-                  {category.label}
-                </TabsTrigger>
-              )
-            })}
-          </TabsList>
+        {showTrash ? (
+          <TrashView 
+            deletedArtworks={getDeletedArtworks()}
+            onRestore={handleRestoreArtwork}
+            onPermanentDelete={handlePermanentDeleteArtwork}
+          />
+        ) : (
+          <Tabs defaultValue="sculptures" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto mb-12">
+              {Object.entries(categories).map(([key, category]) => {
+                const Icon = category.icon
+                return (
+                  <TabsTrigger key={key} value={key} className="flex items-center gap-2">
+                    <Icon size={18} />
+                    {category.label}
+                  </TabsTrigger>
+                )
+              })}
+            </TabsList>
 
-          {Object.keys(categories).map(category => (
-            <TabsContent key={category} value={category}>
-              <div className="gallery-grid">
-                {getArtworksByCategory(category).length > 0 ? (
-                  getArtworksByCategory(category).map(artwork => (
-                    <ArtworkCard key={artwork.id} artwork={artwork} />
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-16">
-                    <div className="max-w-md mx-auto">
-                      <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-                        {React.createElement(categories[category as keyof typeof categories].icon, { 
-                          size: 32, 
-                          className: "text-muted-foreground" 
-                        })}
+            {Object.keys(categories).map(category => (
+              <TabsContent key={category} value={category}>
+                <div className="gallery-grid">
+                  {getArtworksByCategory(category).length > 0 ? (
+                    getArtworksByCategory(category).map(artwork => (
+                      <ArtworkCard key={artwork.id} artwork={artwork} />
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-16">
+                      <div className="max-w-md mx-auto">
+                        <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+                          {React.createElement(categories[category as keyof typeof categories].icon, { 
+                            size: 32, 
+                            className: "text-muted-foreground" 
+                          })}
+                        </div>
+                        <h3 className="text-lg font-medium text-foreground mb-2">
+                          Aucune œuvre dans cette catégorie
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Les {categories[category as keyof typeof categories].label.toLowerCase()} seront bientôt ajoutées à la collection.
+                        </p>
                       </div>
-                      <h3 className="text-lg font-medium text-foreground mb-2">
-                        Aucune œuvre dans cette catégorie
-                      </h3>
-                      <p className="text-muted-foreground">
-                        Les {categories[category as keyof typeof categories].label.toLowerCase()} seront bientôt ajoutées à la collection.
-                      </p>
                     </div>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
+                  )}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        )}
       </main>
 
       {/* Artwork Detail Dialog */}
@@ -340,10 +417,10 @@ function App() {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Supprimer cette œuvre</AlertDialogTitle>
+                        <AlertDialogTitle>Déplacer vers la corbeille</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Êtes-vous sûr de vouloir supprimer "{selectedArtwork.title}" ? 
-                          Cette action est irréversible.
+                          Êtes-vous sûr de vouloir déplacer "{selectedArtwork.title}" vers la corbeille ? 
+                          Vous pourrez la restaurer depuis la corbeille.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -352,7 +429,7 @@ function App() {
                           onClick={() => handleDeleteArtwork(selectedArtwork.id)}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                          Supprimer
+                          Déplacer vers la corbeille
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
