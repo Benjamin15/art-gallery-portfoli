@@ -120,13 +120,15 @@ export function AdminPage() {
 
   const handleRestoreArtwork = async (artworkId: string) => {
     try {
-      // Restore artwork from trash
+      // Restore artwork from trash - remove deletion properties completely
       setArtworks(currentArtworks => 
-        currentArtworks.map(artwork => 
-          artwork.id === artworkId 
-            ? { ...artwork, isDeleted: false, deletedAt: undefined }
-            : artwork
-        )
+        currentArtworks.map(artwork => {
+          if (artwork.id === artworkId) {
+            const { isDeleted, deletedAt, ...restoredArtwork } = artwork
+            return restoredArtwork
+          }
+          return artwork
+        })
       )
     } catch (error) {
       console.error('Error restoring artwork:', error)

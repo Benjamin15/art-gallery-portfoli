@@ -47,7 +47,7 @@ export function GalleryPage() {
 
   const getArtworksByCategory = (category: string) => {
     return artworks.filter(artwork => 
-      artwork.category === category && !artwork.isDeleted
+      artwork.category === category && artwork.isDeleted !== true
     )
   }
 
