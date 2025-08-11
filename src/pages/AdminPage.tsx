@@ -94,8 +94,8 @@ export function AdminPage() {
   }
 
   const handleUploadSuccess = () => {
-    // Force page refresh to show the new artwork
-    window.location.reload()
+    // Close the upload form
+    setIsUploadFormOpen(false)
   }
 
   const handleDeleteArtwork = async (artworkId: string) => {
@@ -113,9 +113,6 @@ export function AdminPage() {
       if (selectedArtwork?.id === artworkId) {
         setSelectedArtwork(null)
       }
-      
-      // Force page refresh to ensure UI is updated
-      window.location.reload()
     } catch (error) {
       console.error('Error moving artwork to trash:', error)
     }
@@ -131,9 +128,6 @@ export function AdminPage() {
             : artwork
         )
       )
-      
-      // Force page refresh to ensure UI is updated
-      window.location.reload()
     } catch (error) {
       console.error('Error restoring artwork:', error)
     }
@@ -145,9 +139,6 @@ export function AdminPage() {
       setArtworks(currentArtworks => 
         currentArtworks.filter(artwork => artwork.id !== artworkId)
       )
-      
-      // Force page refresh to ensure UI is updated
-      window.location.reload()
     } catch (error) {
       console.error('Error permanently deleting artwork:', error)
     }
