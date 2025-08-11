@@ -208,10 +208,6 @@ export function AdminPage() {
       console.error('Error permanently deleting artwork:', error)
     }
   }
-    } catch (error) {
-      console.error('Error permanently deleting artwork:', error)
-    }
-  }
 
   const navigateImage = (direction: 'prev' | 'next') => {
     if (!selectedArtwork) return
