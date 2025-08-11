@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge'
 import { Upload, X, Plus, Palette, Wine, Hammer } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
+import { StoredImage } from '@/components/StoredImage'
 
 interface Artwork {
   id: string
@@ -71,15 +72,36 @@ export function AdminUploadForm({ isOpen, onClose, onSuccess }: AdminUploadFormP
       return
     }
 
-    // Create object URL for preview
-    const objectUrl = URL.createObjectURL(file)
-    setPreviewImage(objectUrl)
-    setFormData(prev => ({
-      ...prev,
-      imageUrl: objectUrl
-    }))
-
-    showNotification('success', 'Image chargée avec succès')
+    // Convert to base64 and save to storage
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      const base64 = e.target?.result as string
+      
+      // Generate a unique filename with timestamp
+      const timestamp = Date.now()
+      const extension = file.name.split('.').pop() || 'jpg'
+      const filename = `${timestamp}.${extension}`
+      const imageKey = `/images/${filename}`
+      
+      try {
+        // Save image data to KV storage
+        await spark.kv.set(imageKey, base64)
+        
+        // Set preview and form data
+        setPreviewImage(base64)
+        setFormData(prev => ({
+          ...prev,
+          imageUrl: imageKey
+        }))
+        
+        showNotification('success', 'Image chargée avec succès')
+      } catch (error) {
+        showNotification('error', 'Erreur lors du chargement de l\'image')
+        console.error('Image upload error:', error)
+      }
+    }
+    
+    reader.readAsDataURL(file)
   }
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -135,9 +157,6 @@ export function AdminUploadForm({ isOpen, onClose, onSuccess }: AdminUploadFormP
   }
 
   const clearPreview = () => {
-    if (previewImage) {
-      URL.revokeObjectURL(previewImage)
-    }
     setPreviewImage(null)
     setFormData(prev => ({ ...prev, imageUrl: '' }))
   }
@@ -173,7 +192,7 @@ export function AdminUploadForm({ isOpen, onClose, onSuccess }: AdminUploadFormP
             {previewImage ? (
               <div className="relative">
                 <div className="aspect-square w-full max-w-sm mx-auto overflow-hidden rounded-lg border bg-muted">
-                  <img 
+                  <StoredImage 
                     src={previewImage} 
                     alt="Aperçu" 
                     className="w-full h-full object-cover"

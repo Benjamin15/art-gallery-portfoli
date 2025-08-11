@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, Plus, UserGear } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import { AdminUploadForm } from '@/components/AdminUploadForm'
+import { StoredImage } from '@/components/StoredImage'
 
 interface Artwork {
   id: string
@@ -99,7 +100,7 @@ function App() {
         onClick={() => handleArtworkClick(artwork)}
       >
         <div className="aspect-square overflow-hidden bg-gray-100">
-          <img 
+          <StoredImage 
             src={artwork.imageUrl} 
             alt={artwork.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -224,7 +225,7 @@ function App() {
             <div className="flex flex-col lg:flex-row h-full">
               {/* Image Section */}
               <div className="flex-1 relative bg-black">
-                <img 
+                <StoredImage 
                   src={selectedArtwork.imageUrl} 
                   alt={selectedArtwork.title}
                   className="w-full h-full object-contain"
