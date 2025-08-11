@@ -7,10 +7,10 @@ import { ShieldCheck, Eye, EyeSlash } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface AdminLoginProps {
-  onLoginSuccess: () => void
+  onLogin: (username: string, password: string) => boolean
 }
 
-export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
+export function AdminLogin({ onLogin }: AdminLoginProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -20,10 +20,11 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simple authentication check
-    if (username === 'admin' && password === 'admin') {
+    // Use the provided login function
+    const success = onLogin(username, password)
+    
+    if (success) {
       toast.success('Connexion réussie')
-      onLoginSuccess()
     } else {
       toast.error('Nom d\'utilisateur ou mot de passe incorrect')
     }

@@ -21,6 +21,7 @@ import { AdminUploadForm } from '@/components/AdminUploadForm'
 import { StoredImage } from '@/components/StoredImage'
 import { TrashView } from '@/components/TrashView'
 import { AdminLogin } from '@/components/AdminLogin'
+import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { Link } from 'react-router-dom'
 
 interface Artwork {
@@ -44,7 +45,9 @@ export function AdminPage() {
   const [isOwner, setIsOwner] = useState(false)
   const [isCheckingOwnership, setIsCheckingOwnership] = useState(true)
   const [showTrash, setShowTrash] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  
+  // Use the new session management system
+  const { isAuthenticated, isLoading: isAuthLoading, login, logout } = useAdminAuth()
 
   // Check if current user is the owner
   useEffect(() => {
@@ -63,16 +66,44 @@ export function AdminPage() {
     checkOwnership()
   }, [])
 
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true)
+  // Show loading state while checking ownership or auth
+  if (isCheckingOwnership || isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Vérification des autorisations...</p>
+        </div>
+      </div>
+    )
   }
 
-  const handleLogout = () => {
-    setIsAuthenticated(false)
+  // If not owner, show access denied
+  if (!isOwner) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Accès refusé</h1>
+          <p className="text-muted-foreground mb-6">
+            Vous n'avez pas l'autorisation d'accéder à cette page.
+          </p>
+          <Link to="/">
+            <Button className="flex items-center gap-2">
+              <ArrowLeft size={18} />
+              Retour à la galerie
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
   }
 
-  const categories = {
-    sculptures: { 
+  // Show login form if not authenticated
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={login} />
+  }
+
+  const categories = { 
       label: 'Sculptures', 
       icon: Hammer, 
       color: 'bg-amber-100 text-amber-800' 
@@ -329,7 +360,7 @@ export function AdminPage() {
 
               <Button
                 variant="outline"
-                onClick={handleLogout}
+                onClick={logout}
                 className="flex items-center gap-2"
               >
                 <SignOut size={18} />
@@ -361,7 +392,7 @@ export function AdminPage() {
 
             <Button
               variant="outline"
-              onClick={handleLogout}
+              onClick={logout}
               className="flex items-center gap-2 w-full"
             >
               <SignOut size={18} />

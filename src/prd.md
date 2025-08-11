@@ -16,6 +16,7 @@
 - **Detailed View**: Full-screen artwork viewer with metadata and navigation
 - **Category Organization**: Visual separation by medium type
 - **Admin Management**: Upload, edit, and delete functionality with restore capabilities
+- **Session Management**: Persistent authentication for admin access with automatic logout
 
 ### Discovery & Search Features ✨ NEW
 - **Universal Search**: Search across titles, descriptions, techniques, and years
@@ -52,7 +53,13 @@
 - **Grid Layout**: Responsive card-based layout optimizing artwork presentation
 - **Navigation**: Smooth transitions between filtered views and detail dialogs
 
-## Technical Implementation
+### Technical Implementation
+
+### Authentication & Security
+- **Session Management**: Persistent login state using useKV storage
+- **Session Expiration**: 24-hour automatic logout for security
+- **State Persistence**: Authentication survives page refreshes and navigation
+- **Secure Logout**: Complete session cleanup on manual logout
 
 ### Search & Filter Architecture
 - **Real-time Filtering**: useMemo for efficient search and sort operations
