@@ -4,7 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, UserGear, SquaresFour } from '@phosphor-icons/react'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, UserGear, SquaresFour, MagnifyingGlass, SortAscending } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import { StoredImage } from '@/components/StoredImage'
 import { Link } from 'react-router-dom'
@@ -27,6 +29,8 @@ export function GalleryPage() {
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [activeTab, setActiveTab] = useState('all')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [sortBy, setSortBy] = useState<'name' | 'date'>('name')
 
   const categories = {
     all: {
@@ -51,13 +55,40 @@ export function GalleryPage() {
     }
   }
 
-  // Get artworks by category including all
+  // Get artworks by category including all, with filtering and sorting
   const getArtworksByCategory = (category: string) => {
     const activeArtworks = artworks.filter(artwork => artwork.isDeleted !== true)
-    if (category === 'all') {
-      return activeArtworks
+    
+    // Filter by category
+    let filteredArtworks = category === 'all' 
+      ? activeArtworks 
+      : activeArtworks.filter(artwork => artwork.category === category)
+    
+    // Filter by search term
+    if (searchTerm.trim()) {
+      filteredArtworks = filteredArtworks.filter(artwork =>
+        artwork.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        artwork.description.toLowerCase().includes(searchTerm.toLowerCase())
+      )
     }
-    return activeArtworks.filter(artwork => artwork.category === category)
+    
+    // Sort artworks
+    filteredArtworks.sort((a, b) => {
+      if (sortBy === 'name') {
+        return a.title.localeCompare(b.title)
+      } else if (sortBy === 'date') {
+        // Sort by year, then by title if no year
+        const yearA = a.year || '0000'
+        const yearB = b.year || '0000'
+        if (yearA === yearB) {
+          return a.title.localeCompare(b.title)
+        }
+        return yearB.localeCompare(yearA) // Most recent first
+      }
+      return 0
+    })
+    
+    return filteredArtworks
   }
 
   const handleArtworkClick = (artwork: Artwork) => {
@@ -169,7 +200,10 @@ export function GalleryPage() {
           <h2 className="category-header text-center mb-8 text-muted-foreground">
             Parcourir par catégorie
           </h2>
-          <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
+          <Tabs defaultValue="all" className="w-full" onValueChange={(value) => {
+            setActiveTab(value)
+            setSearchTerm('') // Reset search when changing tabs
+          }}>
             <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-12">
               {Object.entries(categories).map(([key, category]) => {
                 const Icon = category.icon
@@ -185,6 +219,35 @@ export function GalleryPage() {
 
             {Object.keys(categories).map(category => (
               <TabsContent key={category} value={category}>
+                {/* Filter and Sort Controls */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-8 max-w-2xl mx-auto">
+                  <div className="flex-1 relative">
+                    <MagnifyingGlass 
+                      size={20} 
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" 
+                    />
+                    <Input
+                      placeholder="Rechercher par nom ou description..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <SortAscending size={20} className="text-muted-foreground" />
+                    <Select value={sortBy} onValueChange={(value: 'name' | 'date') => setSortBy(value)}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="name">Nom A-Z</SelectItem>
+                        <SelectItem value="date">Date (récent)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div className="gallery-grid">
                   {getArtworksByCategory(category).length > 0 ? (
                     getArtworksByCategory(category).map(artwork => (
@@ -194,18 +257,27 @@ export function GalleryPage() {
                     <div className="col-span-full text-center py-16">
                       <div className="max-w-md mx-auto">
                         <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-                          {React.createElement(categories[category as keyof typeof categories].icon, { 
-                            size: 32, 
-                            className: "text-muted-foreground" 
-                          })}
+                          {searchTerm ? (
+                            <MagnifyingGlass size={32} className="text-muted-foreground" />
+                          ) : (
+                            React.createElement(categories[category as keyof typeof categories].icon, { 
+                              size: 32, 
+                              className: "text-muted-foreground" 
+                            })
+                          )}
                         </div>
                         <h3 className="text-lg font-medium text-foreground mb-2">
-                          {category === 'all' ? 'Aucune œuvre' : 'Aucune œuvre dans cette catégorie'}
+                          {searchTerm 
+                            ? 'Aucun résultat trouvé'
+                            : category === 'all' ? 'Aucune œuvre' : 'Aucune œuvre dans cette catégorie'
+                          }
                         </h3>
                         <p className="text-muted-foreground">
-                          {category === 'all' 
-                            ? 'La collection sera bientôt remplie d\'œuvres magnifiques.'
-                            : `Les ${categories[category as keyof typeof categories].label.toLowerCase()} seront bientôt ajoutées à la collection.`
+                          {searchTerm 
+                            ? `Aucune œuvre ne correspond à "${searchTerm}". Essayez des termes différents.`
+                            : category === 'all' 
+                              ? 'La collection sera bientôt remplie d\'œuvres magnifiques.'
+                              : `Les ${categories[category as keyof typeof categories].label.toLowerCase()} seront bientôt ajoutées à la collection.`
                           }
                         </p>
                       </div>
