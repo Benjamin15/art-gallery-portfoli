@@ -90,7 +90,7 @@ function App() {
     setSelectedArtwork(categoryArtworks[newIndex])
   }
 
-  const navigateImage = (direction: 'prev' | 'next') => {
+  const ArtworkCard = ({ artwork }: { artwork: Artwork }) => {
     const CategoryIcon = categories[artwork.category].icon
     
     return (
