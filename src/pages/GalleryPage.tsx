@@ -23,7 +23,7 @@ interface Artwork {
 }
 
 export function GalleryPage() {
-  const [artworks] = useKV<Artwork[]>('gallery-artworks', [])
+  const [artworks, setArtworks] = useKV<Artwork[]>('gallery-artworks', [])
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
