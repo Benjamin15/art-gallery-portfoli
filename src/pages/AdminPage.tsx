@@ -15,11 +15,12 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog'
-import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, Plus, Gallery, Trash, Archive, ArrowLeft } from '@phosphor-icons/react'
+import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, Plus, Gallery, Trash, Archive, ArrowLeft, SignOut } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import { AdminUploadForm } from '@/components/AdminUploadForm'
 import { StoredImage } from '@/components/StoredImage'
 import { TrashView } from '@/components/TrashView'
+import { AdminLogin } from '@/components/AdminLogin'
 import { Link } from 'react-router-dom'
 
 interface Artwork {
@@ -43,6 +44,7 @@ export function AdminPage() {
   const [isOwner, setIsOwner] = useState(false)
   const [isCheckingOwnership, setIsCheckingOwnership] = useState(true)
   const [showTrash, setShowTrash] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   // Check if current user is the owner
   useEffect(() => {
@@ -60,6 +62,14 @@ export function AdminPage() {
     }
     checkOwnership()
   }, [])
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true)
+  }
+
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+  }
 
   const categories = {
     sculptures: { 
@@ -198,6 +208,11 @@ export function AdminPage() {
     )
   }
 
+  // Show login form if not authenticated
+  if (!isAuthenticated) {
+    return <AdminLogin onLoginSuccess={handleLoginSuccess} />
+  }
+
   const ArtworkCard = ({ artwork }: { artwork: Artwork }) => {
     const CategoryIcon = categories[artwork.category].icon
     
@@ -311,6 +326,15 @@ export function AdminPage() {
                   Ajouter une œuvre
                 </Button>
               )}
+
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="flex items-center gap-2"
+              >
+                <SignOut size={18} />
+                Déconnexion
+              </Button>
             </div>
           </div>
           
@@ -334,6 +358,15 @@ export function AdminPage() {
                 Ajouter une œuvre
               </Button>
             )}
+
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="flex items-center gap-2 w-full"
+            >
+              <SignOut size={18} />
+              Déconnexion
+            </Button>
           </div>
         </div>
       </header>
