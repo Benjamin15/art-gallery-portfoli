@@ -1,1 +1,104 @@
-/* This is where custom CSS goes */
+@import 'tailwindcss';
+@import "tw-animate-css";
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+}
+
+:root {
+  /* Gallery-inspired color palette */
+  --background: oklch(0.98 0.005 106.8); /* Warm white */
+  --foreground: oklch(0.15 0.005 106.8); /* Deep charcoal */
+
+  --card: oklch(1 0 0); /* Pure white */
+  --card-foreground: oklch(0.15 0.005 106.8); /* Deep charcoal */
+  
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.005 106.8);
+
+  --primary: oklch(0.15 0.005 106.8); /* Deep charcoal */
+  --primary-foreground: oklch(0.98 0.005 106.8); /* Warm white */
+
+  --secondary: oklch(0.95 0.005 106.8); /* Light gray */
+  --secondary-foreground: oklch(0.15 0.005 106.8);
+
+  --muted: oklch(0.95 0.005 106.8);
+  --muted-foreground: oklch(0.48 0.005 106.8); /* Soft gray */
+
+  --accent: oklch(0.72 0.15 85.87); /* Warm gold */
+  --accent-foreground: oklch(0.15 0.005 106.8);
+
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  --border: oklch(0.90 0.005 106.8);
+  --input: oklch(0.90 0.005 106.8);
+  --ring: oklch(0.72 0.15 85.87); /* Warm gold focus ring */
+
+  --radius: 0.5rem;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.5);
+  --radius-xl: calc(var(--radius) * 2);
+  --radius-2xl: calc(var(--radius) * 3);
+  --radius-full: 9999px;
+}
+
+/* Custom typography for gallery */
+.gallery-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+
+.artwork-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.category-header {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+/* Custom gallery grid */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+@media (max-width: 640px) {
+  .gallery-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
