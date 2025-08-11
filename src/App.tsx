@@ -4,7 +4,18 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, Plus, UserGear } from '@phosphor-icons/react'
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/components/ui/alert-dialog'
+import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, Plus, UserGear, Trash } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import { AdminUploadForm } from '@/components/AdminUploadForm'
 import { StoredImage } from '@/components/StoredImage'
@@ -21,7 +32,7 @@ interface Artwork {
 }
 
 function App() {
-  const [artworks] = useKV<Artwork[]>('gallery-artworks', [])
+  const [artworks, setArtworks] = useKV<Artwork[]>('gallery-artworks', [])
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isUploadFormOpen, setIsUploadFormOpen] = useState(false)
@@ -75,6 +86,25 @@ function App() {
     window.location.reload()
   }
 
+  const handleDeleteArtwork = async (artworkId: string) => {
+    try {
+      // Remove artwork from array using functional update
+      setArtworks(currentArtworks => 
+        currentArtworks.filter(artwork => artwork.id !== artworkId)
+      )
+      
+      // Close the detail dialog if the deleted artwork was selected
+      if (selectedArtwork?.id === artworkId) {
+        setSelectedArtwork(null)
+      }
+      
+      // Force page refresh to ensure UI is updated
+      window.location.reload()
+    } catch (error) {
+      console.error('Error deleting artwork:', error)
+    }
+  }
+
   const navigateImage = (direction: 'prev' | 'next') => {
     if (!selectedArtwork) return
     
@@ -95,18 +125,55 @@ function App() {
     const CategoryIcon = categories[artwork.category].icon
     
     return (
-      <Card 
-        className="group cursor-pointer overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-        onClick={() => handleArtworkClick(artwork)}
-      >
-        <div className="aspect-square overflow-hidden bg-gray-100">
-          <StoredImage 
-            src={artwork.imageUrl} 
-            alt={artwork.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+      <Card className="group cursor-pointer overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div className="relative">
+          <div 
+            className="aspect-square overflow-hidden bg-gray-100"
+            onClick={() => handleArtworkClick(artwork)}
+          >
+            <StoredImage 
+              src={artwork.imageUrl} 
+              alt={artwork.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+          
+          {/* Admin Delete Button */}
+          {isOwner && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Trash size={14} />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer cette œuvre</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Êtes-vous sûr de vouloir supprimer "{artwork.title}" ? 
+                    Cette action est irréversible.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => handleDeleteArtwork(artwork.id)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Supprimer
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
-        <CardContent className="p-6">
+        
+        <CardContent className="p-6" onClick={() => handleArtworkClick(artwork)}>
           <div className="flex items-start justify-between mb-3">
             <h3 className="artwork-title text-foreground group-hover:text-accent transition-colors">
               {artwork.title}
@@ -258,6 +325,39 @@ function App() {
                 >
                   <X size={24} />
                 </Button>
+                
+                {/* Admin Delete Button */}
+                {isOwner && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="destructive" 
+                        size="icon"
+                        className="absolute top-4 right-16 bg-red-600/80 hover:bg-red-600 text-white"
+                      >
+                        <Trash size={20} />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Supprimer cette œuvre</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Êtes-vous sûr de vouloir supprimer "{selectedArtwork.title}" ? 
+                          Cette action est irréversible.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteArtwork(selectedArtwork.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Supprimer
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </div>
 
               {/* Info Section */}
