@@ -103,7 +103,8 @@ export function AdminPage() {
     return <AdminLogin onLogin={login} />
   }
 
-  const categories = { 
+  const categories = {
+    sculptures: { 
       label: 'Sculptures', 
       icon: Hammer, 
       color: 'bg-amber-100 text-amber-800' 
