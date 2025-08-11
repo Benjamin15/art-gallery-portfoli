@@ -15,13 +15,15 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog'
-import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, Plus, Gallery, Trash, Archive, ArrowLeft, SignOut } from '@phosphor-icons/react'
+import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, Plus, Gallery, Trash, Archive, ArrowLeft, SignOut, Download } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import { AdminUploadForm } from '@/components/AdminUploadForm'
 import { StoredImage } from '@/components/StoredImage'
 import { TrashView } from '@/components/TrashView'
 import { AdminLogin } from '@/components/AdminLogin'
+import { BackupManager } from '@/components/BackupManager'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
+import { useAutoBackup } from '@/hooks/useAutoBackup'
 import { Link } from 'react-router-dom'
 
 interface Artwork {
@@ -45,9 +47,13 @@ export function AdminPage() {
   const [isOwner, setIsOwner] = useState(false)
   const [isCheckingOwnership, setIsCheckingOwnership] = useState(true)
   const [showTrash, setShowTrash] = useState(false)
+  const [showBackupManager, setShowBackupManager] = useState(false)
   
   // Use the new session management system
   const { isAuthenticated, isLoading: isAuthLoading, login, logout } = useAdminAuth()
+  
+  // Use auto backup system
+  const { triggerBackup } = useAutoBackup()
 
   // Check if current user is the owner
   useEffect(() => {
@@ -142,6 +148,8 @@ export function AdminPage() {
   const handleUploadSuccess = () => {
     // Close the upload form
     setIsUploadFormOpen(false)
+    // Trigger automatic backup after successful upload
+    triggerBackup()
   }
 
   const handleDeleteArtwork = async (artworkId: string) => {
@@ -159,6 +167,9 @@ export function AdminPage() {
       if (selectedArtwork?.id === artworkId) {
         setSelectedArtwork(null)
       }
+      
+      // Trigger automatic backup after deletion
+      triggerBackup()
     } catch (error) {
       console.error('Error moving artwork to trash:', error)
     }
@@ -176,6 +187,9 @@ export function AdminPage() {
           return artwork
         })
       )
+      
+      // Trigger automatic backup after restore
+      triggerBackup()
     } catch (error) {
       console.error('Error restoring artwork:', error)
     }
@@ -187,6 +201,13 @@ export function AdminPage() {
       setArtworks(currentArtworks => 
         currentArtworks.filter(artwork => artwork.id !== artworkId)
       )
+      
+      // Trigger automatic backup after permanent deletion
+      triggerBackup()
+    } catch (error) {
+      console.error('Error permanently deleting artwork:', error)
+    }
+  }
     } catch (error) {
       console.error('Error permanently deleting artwork:', error)
     }
@@ -361,6 +382,15 @@ export function AdminPage() {
 
               <Button
                 variant="outline"
+                onClick={() => setShowBackupManager(true)}
+                className="flex items-center gap-2"
+              >
+                <Download size={18} />
+                Sauvegarde
+              </Button>
+
+              <Button
+                variant="outline"
                 onClick={logout}
                 className="flex items-center gap-2"
               >
@@ -390,6 +420,15 @@ export function AdminPage() {
                 Ajouter une œuvre
               </Button>
             )}
+
+            <Button
+              variant="outline"
+              onClick={() => setShowBackupManager(true)}
+              className="flex items-center gap-2 w-full"
+            >
+              <Download size={18} />
+              Sauvegarde
+            </Button>
 
             <Button
               variant="outline"
@@ -595,6 +634,12 @@ export function AdminPage() {
         isOpen={isUploadFormOpen}
         onClose={() => setIsUploadFormOpen(false)}
         onSuccess={handleUploadSuccess}
+      />
+
+      {/* Backup Manager */}
+      <BackupManager 
+        isOpen={showBackupManager}
+        onClose={() => setShowBackupManager(false)}
       />
     </div>
   )
