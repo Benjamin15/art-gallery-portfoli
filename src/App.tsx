@@ -1,11 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight } from '@phosphor-icons/react'
+import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, Plus, UserGear } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
+import { AdminUploadForm } from '@/components/AdminUploadForm'
 
 interface Artwork {
   id: string
@@ -22,6 +23,22 @@ function App() {
   const [artworks] = useKV<Artwork[]>('gallery-artworks', [])
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isUploadFormOpen, setIsUploadFormOpen] = useState(false)
+  const [isOwner, setIsOwner] = useState(false)
+
+  // Check if current user is the owner
+  useEffect(() => {
+    const checkOwnership = async () => {
+      try {
+        const user = await spark.user()
+        setIsOwner(user.isOwner)
+      } catch (error) {
+        console.error('Error checking user ownership:', error)
+        setIsOwner(false)
+      }
+    }
+    checkOwnership()
+  }, [])
 
   const categories = {
     sculptures: { 
@@ -109,13 +126,43 @@ function App() {
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container mx-auto px-6 py-8">
-          <h1 className="gallery-title text-center text-foreground">
-            Galerie d'Art
-          </h1>
-          <p className="text-center text-muted-foreground mt-2 max-w-2xl mx-auto">
-            Une collection personnelle de sculptures, œuvres en verre et peintures, 
-            chaque pièce racontant sa propre histoire artistique.
-          </p>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <h1 className="gallery-title text-center text-foreground">
+                Galerie d'Art
+              </h1>
+              <p className="text-center text-muted-foreground mt-2 max-w-2xl mx-auto">
+                Une collection personnelle de sculptures, œuvres en verre et peintures, 
+                chaque pièce racontant sa propre histoire artistique.
+              </p>
+            </div>
+            
+            {/* Admin Button */}
+            {isOwner && (
+              <div className="hidden sm:block">
+                <Button
+                  onClick={() => setIsUploadFormOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus size={18} />
+                  Ajouter une œuvre
+                </Button>
+              </div>
+            )}
+          </div>
+          
+          {/* Mobile Admin Button */}
+          {isOwner && (
+            <div className="sm:hidden mt-4 text-center">
+              <Button
+                onClick={() => setIsUploadFormOpen(true)}
+                className="flex items-center gap-2 mx-auto"
+              >
+                <Plus size={18} />
+                Ajouter une œuvre
+              </Button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -266,6 +313,12 @@ function App() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Admin Upload Form */}
+      <AdminUploadForm 
+        isOpen={isUploadFormOpen}
+        onClose={() => setIsUploadFormOpen(false)}
+      />
     </div>
   )
 }

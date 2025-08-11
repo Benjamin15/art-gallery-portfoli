@@ -33,6 +33,13 @@ A sophisticated digital gallery to showcase artistic works including sculptures,
 - Progression: Auto-adjusting grid maintains visual harmony
 - Success criteria: Images maintain aspect ratios and descriptions remain legible
 
+**Admin Upload System** (Owner Only)
+- Functionality: Secure form for adding new artworks directly to the gallery
+- Purpose: Allow the gallery owner to manage their collection remotely
+- Trigger: Owner authentication check enables upload button in header
+- Progression: Click "Add Artwork" → Upload form → Fill details → Submit → Gallery updates
+- Success criteria: Only authenticated owner sees admin controls, successful uploads immediately appear in gallery
+
 ## Edge Case Handling
 
 - **Missing Images**: Display elegant placeholder with artistic sketch pattern
