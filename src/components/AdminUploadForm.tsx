@@ -24,9 +24,10 @@ interface Artwork {
 interface AdminUploadFormProps {
   isOpen: boolean
   onClose: () => void
+  onSuccess?: () => void
 }
 
-export function AdminUploadForm({ isOpen, onClose }: AdminUploadFormProps) {
+export function AdminUploadForm({ isOpen, onClose, onSuccess }: AdminUploadFormProps) {
   const [artworks, setArtworks] = useKV<Artwork[]>('gallery-artworks', [])
   const [isUploading, setIsUploading] = useState(false)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
@@ -119,7 +120,12 @@ export function AdminUploadForm({ isOpen, onClose }: AdminUploadFormProps) {
         dimensions: ''
       })
       setPreviewImage(null)
+      
+      // Close dialog and trigger refresh
       onClose()
+      if (onSuccess) {
+        onSuccess()
+      }
     } catch (error) {
       showNotification('error', 'Erreur lors de l\'ajout de l\'œuvre')
       console.error('Upload error:', error)

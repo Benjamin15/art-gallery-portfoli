@@ -69,6 +69,11 @@ function App() {
     setCurrentImageIndex(index)
   }
 
+  const handleUploadSuccess = () => {
+    // Force page refresh to show the new artwork
+    window.location.reload()
+  }
+
   const navigateImage = (direction: 'prev' | 'next') => {
     if (!selectedArtwork) return
     
@@ -85,7 +90,7 @@ function App() {
     setSelectedArtwork(categoryArtworks[newIndex])
   }
 
-  const ArtworkCard = ({ artwork }: { artwork: Artwork }) => {
+  const navigateImage = (direction: 'prev' | 'next') => {
     const CategoryIcon = categories[artwork.category].icon
     
     return (
@@ -318,6 +323,7 @@ function App() {
       <AdminUploadForm 
         isOpen={isUploadFormOpen}
         onClose={() => setIsUploadFormOpen(false)}
+        onSuccess={handleUploadSuccess}
       />
     </div>
   )
