@@ -15,8 +15,8 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog'
-import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, Plus, Gallery, Trash, Archive, ArrowLeft, SignOut, Download } from '@phosphor-icons/react'
-import { useKV } from '@github/spark/hooks'
+import { Palette, Wine, Hammer, X, CaretLeft, CaretRight, Plus, Trash, Archive, ArrowLeft, SignOut, Download } from '@phosphor-icons/react'
+import { useKV } from '@/hooks/useKV-shim'
 import { AdminUploadForm } from '@/components/AdminUploadForm'
 import { StoredImage } from '@/components/StoredImage'
 import { TrashView } from '@/components/TrashView'
@@ -259,7 +259,7 @@ export function AdminPage() {
 
   // Show login form if not authenticated
   if (!isAuthenticated) {
-    return <AdminLogin onLoginSuccess={handleLoginSuccess} />
+    return <AdminLogin onLogin={login} />
   }
 
   const ArtworkCard = ({ artwork }: { artwork: Artwork }) => {
@@ -512,7 +512,7 @@ export function AdminPage() {
                   className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white"
                   onClick={() => navigateImage('prev')}
                 >
-                  <ChevronLeft size={24} />
+                  <CaretLeft size={24} />
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -520,7 +520,7 @@ export function AdminPage() {
                   className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white"
                   onClick={() => navigateImage('next')}
                 >
-                  <ChevronRight size={24} />
+                  <CaretRight size={24} />
                 </Button>
 
                 {/* Close Button */}
