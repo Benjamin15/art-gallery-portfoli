@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Palette, Wine, Hammer, X, ChevronLeft, ChevronRight, UserGear, SquaresFour, MagnifyingGlass, SortAscending } from '@phosphor-icons/react'
-import { useKV } from '@github/spark/hooks'
+import { Palette, Wine, Hammer, X, CaretLeft, CaretRight, UserGear, SquaresFour, MagnifyingGlass, SortAscending } from '@phosphor-icons/react'
+import { useKV } from '@/hooks/useKV-shim'
 import { StoredImage } from '@/components/StoredImage'
 import { Link } from 'react-router-dom'
 
@@ -310,7 +310,7 @@ export function GalleryPage() {
                   className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white"
                   onClick={() => navigateImage('prev')}
                 >
-                  <ChevronLeft size={24} />
+                  <CaretLeft size={24} />
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -318,7 +318,7 @@ export function GalleryPage() {
                   className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white"
                   onClick={() => navigateImage('next')}
                 >
-                  <ChevronRight size={24} />
+                  <CaretRight size={24} />
                 </Button>
 
                 {/* Close Button */}

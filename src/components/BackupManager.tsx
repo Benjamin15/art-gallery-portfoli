@@ -6,8 +6,8 @@ import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Download, Upload, AlertTriangle, CheckCircle, X, Clock, Archive } from '@phosphor-icons/react'
-import { useKV } from '@github/spark/hooks'
+import { Download, Upload, Warning, CheckCircle, X, Clock, Archive } from '@phosphor-icons/react'
+import { useKV } from '@/hooks/useKV-shim'
 import { BackupUtils } from '@/lib/backup-utils'
 
 interface Artwork {
@@ -197,7 +197,7 @@ export function BackupManager({ isOpen, onClose }: BackupManagerProps) {
               'bg-blue-50 text-blue-700 border border-blue-200'
             }`}>
               {notification.type === 'success' && <CheckCircle size={16} />}
-              {notification.type === 'error' && <AlertTriangle size={16} />}
+              {notification.type === 'error' && <Warning size={16} />}
               <span className="text-sm">{notification.message}</span>
               <Button
                 variant="ghost"
@@ -264,7 +264,7 @@ export function BackupManager({ isOpen, onClose }: BackupManagerProps) {
                 <CardContent className="space-y-4">
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                     <div className="flex items-center gap-2 text-amber-700">
-                      <AlertTriangle size={16} />
+                      <Warning size={16} />
                       <span className="text-sm font-medium">Attention</span>
                     </div>
                     <p className="text-sm text-amber-600 mt-1">

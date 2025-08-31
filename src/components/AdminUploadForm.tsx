@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Upload, X, Plus, Palette, Wine, Hammer } from '@phosphor-icons/react'
-import { useKV } from '@github/spark/hooks'
+import { useKV } from '@/hooks/useKV-shim'
 import { StoredImage } from '@/components/StoredImage'
 
 interface Artwork {
