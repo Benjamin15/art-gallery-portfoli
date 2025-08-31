@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/components/ui/alert-dialog'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Download, Upload, Warning, CheckCircle, X, Clock, Archive } from '@phosphor-icons/react'
 import { useKV } from '@/hooks/useKV-shim'
 import { BackupUtils } from '@/lib/backup-utils'
@@ -123,7 +135,7 @@ export function BackupManager({ isOpen, onClose }: BackupManagerProps) {
       
     } catch (error) {
       console.error('Import error:', error)
-      showNotification('error', 'Erreur lors de l\'import: ' + error.message)
+      showNotification('error', 'Erreur lors de l\'import: ' + (error as Error).message)
     } finally {
       setIsImporting(false)
       setTimeout(() => setImportProgress(0), 2000)
@@ -394,7 +406,7 @@ export function BackupManager({ isOpen, onClose }: BackupManagerProps) {
                 <p><strong>Format de sauvegarde :</strong> JSON contenant les métadonnées et les images en base64</p>
                 <p><strong>Compatibilité :</strong> Les sauvegardes peuvent être partagées entre installations</p>
                 <p><strong>Sécurité :</strong> Conservez vos sauvegardes dans un lieu sûr (cloud, disque externe)</p>
-                <p><strong>Git :</strong> Pour de petites galeries uniquement (&lt; 10 MB). Consultez BACKUP_GUIDE.md</p>
+                <p><strong>Git :</strong> Pour de petites galeries uniquement (< 10 MB). Consultez BACKUP_GUIDE.md</p>
               </div>
             </CardContent>
           </Card>
