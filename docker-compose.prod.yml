@@ -1,0 +1,52 @@
+version: '3.9'
+services:
+  server:
+    build: .
+    container_name: artgallery-server
+    restart: unless-stopped
+    environment:
+      PORT: 8787
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DB: artgallery
+      CORS_ORIGIN: https://${API_DOMAIN},https://${API_DOMAIN}
+    networks:
+      - web
+    expose:
+      - "8787"
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo:7
+    container_name: artgallery-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - web
+  caddy:
+    image: caddy:2-alpine
+    container_name: artgallery-proxy
+    restart: unless-stopped
+    environment:
+      API_DOMAIN: ${API_DOMAIN}
+      CADDY_EMAIL: ${CADDY_EMAIL}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - web
+    depends_on:
+      - server
+
+volumes:
+  mongo_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  web:
+    driver: bridge

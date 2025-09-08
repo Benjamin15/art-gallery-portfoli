@@ -1,0 +1,22 @@
+{
+	# Email pour Let's Encrypt
+	email {env.CADDY_EMAIL}
+}
+
+{env.API_DOMAIN} {
+	encode gzip zstd
+	@api path /api/*
+	reverse_proxy @api server:8787
+	# Optionnel: healthcheck route courte
+	handle /health {
+		respond 200 {
+			body "ok"
+		}
+	}
+	# Sécurité basique headers
+	headers {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy same-origin
+	}
+}

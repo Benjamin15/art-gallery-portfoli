@@ -1,0 +1,25 @@
+version: '3.9'
+services:
+  mongo:
+    image: mongo:7
+    container_name: artgallery-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+  server:
+    build: .
+    container_name: artgallery-server
+    restart: unless-stopped
+    environment:
+      PORT: 8787
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DB: artgallery
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    depends_on:
+      - mongo
+    ports:
+      - "8787:8787"
+volumes:
+  mongo_data:

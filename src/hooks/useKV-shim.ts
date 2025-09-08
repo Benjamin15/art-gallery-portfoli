@@ -5,6 +5,8 @@ import spark from '@/lib/spark-shim'
 export function useKV<T>(key: string, initial: T): [T, (v: T | ((prev: T) => T)) => void] {
   const [value, setValue] = useState<T>(initial)
   const mounted = useRef(false)
+  // Évite la première persistance immédiatement après le chargement initial
+  const skipNextPersist = useRef(false)
 
   // Load initial from server
   useEffect(() => {
@@ -12,7 +14,11 @@ export function useKV<T>(key: string, initial: T): [T, (v: T | ((prev: T) => T))
     ;(async () => {
       try {
         const v = await spark.kv.get<T>(key)
-        if (!cancelled && v !== null && v !== undefined) setValue(v)
+        if (!cancelled && v !== null && v !== undefined) {
+          setValue(v)
+          // Sauter la prochaine persistance (sinon on ré-écrit le même contenu et Vite recharge)
+          skipNextPersist.current = true
+        }
       } catch {}
     })()
     return () => {
@@ -24,6 +30,10 @@ export function useKV<T>(key: string, initial: T): [T, (v: T | ((prev: T) => T))
   useEffect(() => {
     if (!mounted.current) {
       mounted.current = true
+      return
+    }
+    if (skipNextPersist.current) {
+      skipNextPersist.current = false
       return
     }
     spark.kv.set(key, value).catch(() => {})

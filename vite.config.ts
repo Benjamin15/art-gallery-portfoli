@@ -8,6 +8,8 @@ const projectRoot = process.env.PROJECT_ROOT || fileURLToPath(new URL('.', impor
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Permet de définir un sous-chemin (ex: '/art-gallery-portfoli/') pour GitHub Pages
+  base: process.env.VITE_BASE_PATH || '/',
   plugins: [
     react(),
     tailwindcss(),
@@ -27,6 +29,14 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    // Empêche Vite de recharger l'app quand le backend écrit dans le stockage KV
+    // (les sauvegardes modifient server/data/kv.json très souvent)
+    watch: {
+      ignored: [
+        '**/server/data/**',
+        '**/pids/**'
+      ]
+    }
   },
   build: {
     rollupOptions: {

@@ -1,4 +1,6 @@
 import express from 'express'
+import cors from 'cors'
+import { getDb } from './mongo.js'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -7,6 +9,10 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
+// Allow CORS so that a static frontend (e.g. GitHub Pages) can call the API
+app.use(cors({
+  origin: process.env.CORS_ORIGIN?.split(',') || '*'
+}))
 app.use(express.json({ limit: '25mb' }))
 
 const dataDir = path.join(__dirname, 'data')
@@ -17,7 +23,14 @@ function ensureDataDir() {
   if (!fs.existsSync(kvFile)) fs.writeFileSync(kvFile, JSON.stringify({}), 'utf8')
 }
 
-function readKV() {
+async function readKV() {
+  const db = await getDb()
+  if (db) {
+    const docs = await db.collection('kv').find({}).toArray()
+    const map = {}
+    for (const d of docs) map[d.key] = d.value
+    return map
+  }
   ensureDataDir()
   try {
     return JSON.parse(fs.readFileSync(kvFile, 'utf8') || '{}')
@@ -26,7 +39,17 @@ function readKV() {
   }
 }
 
-function writeKV(obj) {
+async function writeKV(obj) {
+  const db = await getDb()
+  if (db) {
+    const coll = db.collection('kv')
+    const bulk = coll.initializeUnorderedBulkOp()
+    for (const [k, v] of Object.entries(obj)) {
+      bulk.find({ key: k }).upsert().updateOne({ $set: { key: k, value: v } })
+    }
+    await bulk.execute()
+    return
+  }
   ensureDataDir()
   fs.writeFileSync(kvFile, JSON.stringify(obj, null, 2), 'utf8')
 }
@@ -37,37 +60,37 @@ app.get('/api/health', (_req, res) => {
 })
 
 // KV: list keys
-app.get('/api/kv/keys', (_req, res) => {
-  const kv = readKV()
+app.get('/api/kv/keys', async (_req, res) => {
+  const kv = await readKV()
   res.json(Object.keys(kv))
 })
 
 // KV: get value
-app.get('/api/kv/*', (req, res) => {
+app.get('/api/kv/*', async (req, res) => {
   const key = '/' + req.params[0]
-  const kv = readKV()
+  const kv = await readKV()
   if (!(key in kv)) return res.status(404).json({ error: 'Not found' })
   res.json({ value: kv[key] })
 })
 
 // KV: set value
-app.put('/api/kv/*', (req, res) => {
+app.put('/api/kv/*', async (req, res) => {
   const key = '/' + req.params[0]
   const { value } = req.body || {}
   if (typeof value === 'undefined') return res.status(400).json({ error: 'Missing value' })
-  const kv = readKV()
+  const kv = await readKV()
   kv[key] = value
-  writeKV(kv)
+  await writeKV(kv)
   res.json({ ok: true })
 })
 
 // KV: delete
-app.delete('/api/kv/*', (req, res) => {
+app.delete('/api/kv/*', async (req, res) => {
   const key = '/' + req.params[0]
-  const kv = readKV()
+  const kv = await readKV()
   if (key in kv) {
     delete kv[key]
-    writeKV(kv)
+    await writeKV(kv)
   }
   res.json({ ok: true })
 })

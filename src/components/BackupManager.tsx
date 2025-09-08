@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -406,7 +406,7 @@ export function BackupManager({ isOpen, onClose }: BackupManagerProps) {
                 <p><strong>Format de sauvegarde :</strong> JSON contenant les métadonnées et les images en base64</p>
                 <p><strong>Compatibilité :</strong> Les sauvegardes peuvent être partagées entre installations</p>
                 <p><strong>Sécurité :</strong> Conservez vos sauvegardes dans un lieu sûr (cloud, disque externe)</p>
-                <p><strong>Git :</strong> Pour de petites galeries uniquement (< 10 MB). Consultez BACKUP_GUIDE.md</p>
+                <p><strong>Git :</strong> Pour de petites galeries uniquement (&lt; 10 MB). Consultez BACKUP_GUIDE.md</p>
               </div>
             </CardContent>
           </Card>
