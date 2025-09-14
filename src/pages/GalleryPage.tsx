@@ -4,12 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Palette, Wine, Hammer, X, CaretLeft, CaretRight, UserGear, SquaresFour, MagnifyingGlass, SortAscending } from '@phosphor-icons/react'
+import { Palette, Wine, Hammer, X, CaretLeft, CaretRight, SquaresFour } from '@phosphor-icons/react'
 import { useKV } from '@/hooks/useKV-shim'
 import { StoredImage } from '@/components/StoredImage'
-import { Link } from 'react-router-dom'
+// Admin retiré
 
 interface Artwork {
   id: string
@@ -29,8 +27,9 @@ export function GalleryPage() {
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [activeTab, setActiveTab] = useState('all')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState<'name' | 'date'>('name')
+  // Contenu autobiographique (optionnel)
+  const [bio] = useKV<string>('bio', "Artiste passionné par les matières et la lumière. Voici un aperçu de mon parcours et de mon univers.")
+  const [bioPhoto] = useKV<string | null>('bioPhoto', null)
 
   const categories = {
     all: {
@@ -47,46 +46,22 @@ export function GalleryPage() {
       label: 'Verres', 
       icon: Wine, 
       color: 'bg-blue-100 text-blue-800' 
-    },
-    peintures: { 
-      label: 'Peintures', 
-      icon: Palette, 
-      color: 'bg-purple-100 text-purple-800' 
-    }
+  }
   }
 
   // Get artworks by category including all, with filtering and sorting
   const getArtworksByCategory = (category: string) => {
-    const activeArtworks = artworks.filter(artwork => artwork.isDeleted !== true)
+    // Exclure les peintures de l'affichage
+    const activeArtworks = artworks
+      .filter(artwork => artwork.isDeleted !== true)
+      .filter(artwork => artwork.category !== 'peintures')
     
     // Filter by category
     let filteredArtworks = category === 'all' 
       ? activeArtworks 
       : activeArtworks.filter(artwork => artwork.category === category)
     
-    // Filter by search term
-    if (searchTerm.trim()) {
-      filteredArtworks = filteredArtworks.filter(artwork =>
-        artwork.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        artwork.description.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    }
-    
-    // Sort artworks
-    filteredArtworks.sort((a, b) => {
-      if (sortBy === 'name') {
-        return a.title.localeCompare(b.title)
-      } else if (sortBy === 'date') {
-        // Sort by year, then by title if no year
-        const yearA = a.year || '0000'
-        const yearB = b.year || '0000'
-        if (yearA === yearB) {
-          return a.title.localeCompare(b.title)
-        }
-        return yearB.localeCompare(yearA) // Most recent first
-      }
-      return 0
-    })
+  // Contrôles de recherche/tri retirés
     
     return filteredArtworks
   }
@@ -134,7 +109,7 @@ export function GalleryPage() {
           </div>
         </div>
         
-        <CardContent className="p-6" onClick={() => handleArtworkClick(artwork)}>
+  <CardContent className="p-4" onClick={() => handleArtworkClick(artwork)}>
           <div className="flex items-start justify-between mb-3">
             <h3 className="artwork-title text-foreground group-hover:text-accent transition-colors">
               {artwork.title}
@@ -159,52 +134,38 @@ export function GalleryPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <h1 className="gallery-title text-center text-foreground">
-                Galerie d'Art
-              </h1>
-              <p className="text-center text-muted-foreground mt-2 max-w-2xl mx-auto">
-                Une collection personnelle de sculptures, œuvres en verre et peintures, 
-                chaque pièce racontant sa propre histoire artistique.
-              </p>
+        <div className="container mx-auto px-6 py-6">
+          {/* Titre rétabli */}
+          <h1 className="gallery-title text-foreground mb-3 text-center">Galerie d'art de Michel Mailhot</h1>
+          {/* Biographie: photo en haut à gauche, texte centré */}
+          <div className="mt-2 relative">
+            <div className="fixed left-2 top-2 z-50">
+              <div className="w-24 h-24 rounded-full overflow-hidden border border-border bg-muted">
+                {bioPhoto ? (
+                  <StoredImage src={bioPhoto} alt="Portrait" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+                    Photo
+                  </div>
+                )}
+              </div>
             </div>
-            
-            {/* Admin Link */}
-            <div className="hidden sm:flex">
-              <Link to="/admin">
-                <Button variant="outline" className="flex items-center gap-2">
-                  <UserGear size={18} />
-                  Administration
-                </Button>
-              </Link>
+            <div className="max-w-3xl mx-auto text-center">
+              {/* Titre autobiographie supprimé */}
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{bio}</p>
             </div>
-          </div>
-          
-          {/* Mobile Admin Link */}
-          <div className="sm:hidden mt-4 text-center">
-            <Link to="/admin">
-              <Button variant="outline" className="flex items-center gap-2 mx-auto">
-                <UserGear size={18} />
-                Administration
-              </Button>
-            </Link>
           </div>
         </div>
       </header>
 
       {/* Main Content with Category Tabs */}
-      <main className="container mx-auto px-6 py-12">
-        <div className="mb-8">
-          <h2 className="category-header text-center mb-8 text-muted-foreground">
-            Parcourir par catégorie
-          </h2>
+      <main className="container mx-auto px-6 py-6">
+        <div className="mb-6">
+          {/* Titre 'Parcourir par catégorie' supprimé */}
           <Tabs defaultValue="all" className="w-full" onValueChange={(value) => {
             setActiveTab(value)
-            setSearchTerm('') // Reset search when changing tabs
           }}>
-            <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-12">
+            <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto mb-6">
               {Object.entries(categories).map(([key, category]) => {
                 const Icon = category.icon
                 return (
@@ -219,34 +180,7 @@ export function GalleryPage() {
 
             {Object.keys(categories).map(category => (
               <TabsContent key={category} value={category}>
-                {/* Filter and Sort Controls */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-8 max-w-2xl mx-auto">
-                  <div className="flex-1 relative">
-                    <MagnifyingGlass 
-                      size={20} 
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" 
-                    />
-                    <Input
-                      placeholder="Rechercher par nom ou description..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <SortAscending size={20} className="text-muted-foreground" />
-                    <Select value={sortBy} onValueChange={(value: 'name' | 'date') => setSortBy(value)}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="name">Nom A-Z</SelectItem>
-                        <SelectItem value="date">Date (récent)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                {/* Contrôles de recherche et tri supprimés */}
 
                 <div className="gallery-grid">
                   {getArtworksByCategory(category).length > 0 ? (
@@ -257,27 +191,18 @@ export function GalleryPage() {
                     <div className="col-span-full text-center py-16">
                       <div className="max-w-md mx-auto">
                         <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-                          {searchTerm ? (
-                            <MagnifyingGlass size={32} className="text-muted-foreground" />
-                          ) : (
-                            React.createElement(categories[category as keyof typeof categories].icon, { 
-                              size: 32, 
-                              className: "text-muted-foreground" 
-                            })
-                          )}
+                          {React.createElement(categories[category as keyof typeof categories].icon, { 
+                            size: 32, 
+                            className: "text-muted-foreground" 
+                          })}
                         </div>
                         <h3 className="text-lg font-medium text-foreground mb-2">
-                          {searchTerm 
-                            ? 'Aucun résultat trouvé'
-                            : category === 'all' ? 'Aucune œuvre' : 'Aucune œuvre dans cette catégorie'
-                          }
+                          {category === 'all' ? 'Aucune œuvre' : 'Aucune œuvre dans cette catégorie'}
                         </h3>
                         <p className="text-muted-foreground">
-                          {searchTerm 
-                            ? `Aucune œuvre ne correspond à "${searchTerm}". Essayez des termes différents.`
-                            : category === 'all' 
-                              ? 'La collection sera bientôt remplie d\'œuvres magnifiques.'
-                              : `Les ${categories[category as keyof typeof categories].label.toLowerCase()} seront bientôt ajoutées à la collection.`
+                          {category === 'all' 
+                            ? 'La collection sera bientôt remplie d\'œuvres magnifiques.'
+                            : `Les ${categories[category as keyof typeof categories].label.toLowerCase()} seront bientôt ajoutées à la collection.`
                           }
                         </p>
                       </div>

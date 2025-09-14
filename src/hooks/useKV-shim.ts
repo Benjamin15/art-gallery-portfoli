@@ -8,7 +8,7 @@ export function useKV<T>(key: string, initial: T): [T, (v: T | ((prev: T) => T))
   // Évite la première persistance immédiatement après le chargement initial
   const skipNextPersist = useRef(false)
 
-  // Load initial from server
+  // Charger initialement depuis la source statique (ou localStorage via spark)
   useEffect(() => {
     let cancelled = false
     ;(async () => {
